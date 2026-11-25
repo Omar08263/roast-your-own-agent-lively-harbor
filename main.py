@@ -12,8 +12,9 @@ import sys
 ROAST = "My agent apologises for the mistake, then makes the exact same mistake — now with a sincere apology attached."
 
 # The bounty gate allows 1 to 140 characters; this line is 109.
-# It must also stay a single line: a newline inside would break the gate.
-if not 1 <= len(ROAST) <= 140 or "\n" in ROAST:
+# It must also stay a single line: a newline or carriage return inside
+# would break the gate (a CR is a second line-break form, not text).
+if not 1 <= len(ROAST) <= 140 or "\n" in ROAST or "\r" in ROAST:
     sys.exit("roast line is outside the 1-140 character gate or is not one line")
 
 
