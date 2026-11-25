@@ -14,17 +14,29 @@ ROAST = "My agent apologises for the mistake, then makes the exact same mistake 
 # The bounty gate allows 1 to 140 characters; this line is 109.
 # It must also stay a single line: a newline or carriage return inside
 # would break the gate (a CR is a second line-break form, not text).
-if not 1 <= len(ROAST) <= 140 or "\n" in ROAST or "\r" in ROAST:
-    sys.exit("roast line is outside the 1-140 character gate or is not one line")
+MIN_CHARS = 1
+MAX_CHARS = 140
+LINE_BREAKS = ("\n", "\r")
 
 
-def resolve_out_dir():
+def validate_roast(line):
+    """Reject a roast outside the gate or spanning more than one line."""
+    if not MIN_CHARS <= len(line) <= MAX_CHARS:
+        sys.exit("roast line is outside the 1-140 character gate")
+    if any(mark in line for mark in LINE_BREAKS):
+        sys.exit("roast line is not one line")
+
+
+validate_roast(ROAST)
+
+
+def resolve_out_dir() -> str:
     """The output directory: $MAKEFUN_OUTPUT_DIR, or /output when unset/empty."""
     wanted = os.environ.get("MAKEFUN_OUTPUT_DIR", "")
     return wanted.strip() or "/output"
 
 
-def write_roast(out_dir):
+def write_roast(out_dir: str) -> int:
     """Write the roast to entry.txt under out_dir and confirm it."""
     os.makedirs(out_dir, exist_ok=True)
     path = os.path.join(out_dir, "entry.txt")
@@ -36,6 +48,11 @@ def write_roast(out_dir):
         stored = handle.read()
     if stored != payload:
         sys.exit("entry.txt on disk does not match the roast line")
+    # The gate counts characters, not bytes: confirm the stored text is
+    # still one line of exactly the roast's characters before reporting ok.
+    text = stored.decode("utf-8")
+    if len(text.rstrip("\n")) != len(ROAST):
+        sys.exit("entry.txt character count does not match the roast line")
     return 0
 
 
